@@ -1,0 +1,116 @@
+<html lang="fa">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Speech AI</title>
+  </head>
+<style>
+	body{
+		background:#F5FFEB;
+		text-align:center;
+		}
+	.output {
+    background: #007EFF;
+    padding: 150px;
+    border-radius: 200px;
+    width: 70px;
+    border:5px dashed black;
+    font-weight: 900;
+    font-size: 20px;
+    margin: auto;
+    margin-top: 40%;
+    box-shadow: 20px 38px 34px -26px hsla(0,0%,0%,.5);
+    animation: float 2s ease-in-out infinite;
+}
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-25px);
+    }
+}
+
+		.ai{
+			background:#26FF00;
+			border-radius:20px;
+			padding:20px;
+			text-align:left;
+			position: absolute;
+			bottom:20px;
+			left:20;
+			right:20;
+			font-weight:900;
+			box-shadow: 20px 38px 34px -26px hsla(0,0%,0%,.2);
+		font-size:20px;
+			}
+	</style>
+  <body>
+  	<code>
+    <h1 style="margin-top:30px;">Speech AI</h1>
+    <div class="output" id="inp">
+      <p style="font-size:15px;">ضربه بزنید</p>
+      </div>
+      <div class="ai">
+      <p>result</p>
+      </div>
+      </code>
+    <script>
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList;
+var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent;
+var recognition = new SpeechRecognition();
+var speechRecognitionList = new SpeechGrammarList();
+
+recognition.continuous = false;
+recognition.lang = 'fa-IR';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+
+var diagnostic = document.querySelector('.output');
+var ai = document.querySelector('.ai');
+
+document.getElementById('inp').onclick = function() {
+        diagnostic.style.background = "#FF262C";
+        recognition.start();
+        console.log('Speech recognition started');
+      }
+recognition.onresult = function(event) {
+  var mic = event.results[0][0].transcript;
+  
+  if (mic) {
+      fetch('gpt.php?text=' + encodeURIComponent(mic))
+        .then(response => response.text())
+        .then(data => {
+            var speak = new SpeechSynthesisUtterance(data);
+            window.speechSynthesis.speak(speak);
+            ai.innerHTML = '<p style="font-size:15px;">' + data + '</p>';
+            diagnostic.style.background = "#007EFF";
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            diagnostic.textContent = 'Error occurred while communicating with the server.';
+        });
+  } else {
+      var speak = new SpeechSynthesisUtterance("error");
+      window.speechSynthesis.speak(speak);
+      diagnostic.textContent = "Unrecognized command.";
+  }
+}
+
+recognition.onspeechend = function() {
+  recognition.stop();
+}
+
+recognition.onnomatch = function(event) {
+  diagnostic.textContent = "من نتوانستم آن را تشخیص دهم.";
+}
+
+recognition.onerror = function(event) {
+  diagnostic.textContent = event.error;
+}
+</script>
+
+  </body>
+</html>
