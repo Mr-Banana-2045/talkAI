@@ -81,13 +81,18 @@ recognition.onresult = function(event) {
   
   if (mic) {
       fetch('gpt.php?text=' + encodeURIComponent(mic))
-        .then(response => response.text())
+        .then(response => response.json())
         .then(data => {
-            var speak = new SpeechSynthesisUtterance(data);
+        	if (data.error) {
+                console.error('Error:', data.error);
+                alert('Error: ' + data.error);
+            } else {
+            var speak = new SpeechSynthesisUtterance(data.en);
             window.speechSynthesis.speak(speak);
-            ai.innerHTML = '<p style="font-size:15px;">' + data + '</p>';
+        	ai.innerHTML = '<p style="font-size:15px; float:right;">' + data.fa + '</p>';
             diagnostic.style.background = "#007EFF";
-        })
+            }
+       })
         .catch(error => {
             console.error('Error:', error);
             diagnostic.textContent = 'Error occurred while communicating with the server.';
